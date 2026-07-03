@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import logging
 import os
 import re
 from datetime import datetime
@@ -11,6 +12,22 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 RESULTADOS_PRUEBAS: list[dict[str, str | float]] = []
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Configura logging global para consola y archivo."""
+    os.makedirs("reports", exist_ok=True)
+    ruta_log = os.path.join("reports", "execution.log")
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(ruta_log, encoding="utf-8"),
+        ],
+        force=True,
+    )
 
 
 @pytest.fixture(scope="function")
@@ -56,17 +73,24 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]):
         )
 
     if reporte.when == "call" and reporte.failed:
-        driver_actual = item.funcargs.get("navegador")
+        driver_actual = item.funcargs.get("navegador") or item.funcargs.get("driver")
         if driver_actual is None:
             return
 
-        os.makedirs("reports", exist_ok=True)
+        fecha = datetime.now().strftime("%Y%m%d")
+        carpeta_screens = os.path.join("reports", "screenshots", fecha)
+        os.makedirs(carpeta_screens, exist_ok=True)
         nombre_test_seguro = re.sub(r"[^A-Za-z0-9_.-]", "_", item.nodeid)
         marca_tiempo = datetime.now().strftime("%Y%m%d_%H%M%S")
-        ruta_captura = os.path.join(
-            "reports", f"captura_{nombre_test_seguro}_{marca_tiempo}.png"
-        )
-        driver_actual.save_screenshot(ruta_captura)
+        nombre_archivo = f"{marca_tiempo}_{nombre_test_seguro}.png"
+        ruta_captura = os.path.join(carpeta_screens, nombre_archivo)
+
+        if driver_actual.save_screenshot(ruta_captura):
+            html_plugin = item.config.pluginmanager.getplugin("html")
+            if html_plugin is not None:
+                extras = getattr(reporte, "extras", [])
+                extras.append(html_plugin.extras.image(ruta_captura, name="screenshot"))
+                reporte.extras = extras
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
