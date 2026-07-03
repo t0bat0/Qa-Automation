@@ -1,0 +1,45 @@
+{
+  "postulacion_ui_cases": [
+    {
+      "id": "registro_cv_ok_pdf",
+      "nombre": "Tobias Tempra",
+      "email": "tobias.tempra+ok1@mail.com",
+      "cv_file": "cv_ok.pdf",
+      "expect_status": "ok",
+      "expect_message_contains": "Postulacion enviada con exito"
+    },
+    {
+      "id": "registro_cv_ok_docx",
+      "nombre": "Ana QA",
+      "email": "ana.qa+ok2@mail.com",
+      "cv_file": "cv_ok.docx",
+      "expect_status": "ok",
+      "expect_message_contains": "ID generado"
+    },
+    {
+      "id": "email_duplicado",
+      "nombre": "Juan Perez",
+      "email": "repetido@mail.com",
+      "cv_file": "cv_ok.pdf",
+      "expect_status": "error",
+      "expect_message_contains": "Email duplicado",
+      "precreate_same_email": true
+    },
+    {
+      "id": "email_formato_invalido",
+      "nombre": "Mario Test",
+      "email": "correo-sin-formato",
+      "cv_file": "cv_ok.pdf",
+      "expect_status": "error",
+      "expect_message_contains": "formato de email"
+    },
+    {
+      "id": "cv_formato_invalido",
+      "nombre": "Luisa Alvarez",
+      "email": "luisa.alvarez@mail.com",
+      "cv_file": "cv_invalido.txt",
+      "expect_status": "error",
+      "expect_message_contains": "Formato de CV invalido"
+    }
+  ]
+}

@@ -69,4 +69,5 @@ def test_post_y_delete_encadenado() -> None:
     logger.info("Recurso creado con id dinamico: %s", resource_id)
 
     eliminar = requests.delete(f"{BASE_URL}/posts/{resource_id}", timeout=20)
+    logger.info("Respuesta DELETE para id %s: %s", resource_id, eliminar.status_code)
     assert eliminar.status_code in (200, 204)
