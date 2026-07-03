@@ -1,14 +1,13 @@
 # pre-entrega-automation-testing-tobias-ezequiel-tempra
 
-Proyecto de automatizacion de pruebas web para [www.saucedemo.com](https://www.saucedemo.com/) utilizando Python, Selenium WebDriver y Pytest.
+Proyecto de automatizacion de pruebas con Python, Selenium WebDriver, Pytest y requests.
 
 ## Proposito
 
-Validar funcionalidades criticas del flujo de compra inicial en SauceDemo:
+Validar de forma automatizada:
 
-- Login exitoso.
-- Visualizacion del catalogo de productos.
-- Agregado de producto al carrito.
+- Flujos UI de registro y carga de CV (positivos y negativos) con datos externos.
+- Pruebas API independientes con metodos GET, POST y DELETE.
 
 La suite esta disenada con pruebas independientes entre si: cada test inicializa su propio navegador y no depende del resultado de otro.
 
@@ -22,11 +21,16 @@ La suite esta disenada con pruebas independientes entre si: cada test inicializa
 
 ## Estructura del proyecto
 
-- `tests/test_saucedemo.py`: Casos de prueba requeridos.
-- `utils/helpers.py`: Helpers reutilizables y localizadores.
-- `conftest.py`: Fixtures de setup/teardown y captura automatica en fallos.
+- `pages/base_page.py`: Base de Page Object Model con acciones reutilizables.
+- `pages/postulacion_page.py`: Page Object del flujo de registro/carga de CV.
+- `tests/test_saucedemo.py`: Suite UI parametrizada (5 casos de registro/cv).
+- `tests/test_api.py`: Suite API con requests (GET/POST/DELETE y encadenamiento de ID).
+- `data/ui_test_data.json`: Datos externos de escenarios UI.
+- `data/cv_samples/`: Archivos de CV para pruebas de carga (validos e invalidos).
+- `ui_demo/index.html`: Demo local para automatizar registro/carga de CV.
+- `conftest.py`: Fixtures, logging y captura automatica en fallos con adjunto al reporte HTML.
 - `requirements.txt`: Dependencias del proyecto.
-- `reports/`: Reportes HTML y capturas de pantalla en caso de fallo.
+- `reports/`: Reportes HTML, logs y capturas en caso de fallo.
 
 ## Instalacion paso a paso
 
@@ -64,13 +68,13 @@ pip install -r requirements.txt
 Comando para ejecutar pruebas y generar reporte HTML de pytest-html:
 
 ```bash
-pytest tests/test_saucedemo.py -v --html=reports/reporte.html
+pytest -v --html=reports/reporte.html
 ```
 
 Comando recomendado para un reporte embebido (mejor visualizacion en VS Code):
 
 ```bash
-pytest tests/test_saucedemo.py -v --html=reports/reporte.html --self-contained-html
+pytest -v --html=reports/reporte.html --self-contained-html
 ```
 
 Adicionalmente, al finalizar cada corrida se genera un reporte en espanol en:
@@ -79,4 +83,4 @@ Adicionalmente, al finalizar cada corrida se genera un reporte en espanol en:
 
 ## Evidencias de fallo
 
-Si un test falla, `conftest.py` guarda automaticamente una captura en `reports/` con nombre que incluye test y timestamp.
+Si un test falla, `conftest.py` guarda automaticamente una captura en `reports/screenshots/<fecha>/` con nombre que incluye test y timestamp, y la adjunta al reporte visual de pytest-html.
