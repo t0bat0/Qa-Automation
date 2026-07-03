@@ -22,10 +22,8 @@ __pycache__/
 .ruff_cache/
 .cache/
 
-# Reportes generados (excluir binarios pero trackear carpeta)
-reports/*.png
-reports/reporte.html
-reports/reporte_es.html
+# Reportes y evidencias generadas automaticamente
+reports/
 
 # IDEs
 .vscode/
