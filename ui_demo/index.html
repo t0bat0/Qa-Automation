@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de Postulaciones QA</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #15202b;
+      --ok: #117a37;
+      --error: #b42318;
+      --accent: #005fcc;
+      --border: #d0d7de;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top left, #e8f1ff, var(--bg) 42%);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .card {
+      width: min(640px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.5rem;
+    }
+    p {
+      margin: 0 0 20px;
+      color: #4f5d6b;
+    }
+    form {
+      display: grid;
+      gap: 14px;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      font-weight: 600;
+    }
+    input {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 15px;
+    }
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 14px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .msg {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: none;
+      white-space: pre-wrap;
+    }
+    .ok {
+      background: #eaf8ef;
+      color: var(--ok);
+      border: 1px solid #b7ebca;
+      display: block;
+    }
+    .error {
+      background: #fff0ef;
+      color: var(--error);
+      border: 1px solid #f3c3bf;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Registro y Carga de CV</h1>
+    <p>Demo local para automatizacion de escenarios de postulacion.</p>
+
+    <form id="jobForm">
+      <label for="nombre">Nombre completo
+        <input id="nombre" name="nombre" type="text" required />
+      </label>
+
+      <label for="email">Email
+        <input id="email" name="email" type="text" required />
+      </label>
+
+      <label for="cvFile">CV (pdf, doc, docx)
+        <input id="cvFile" name="cvFile" type="file" required />
+      </label>
+
+      <button id="submitBtn" type="submit">Enviar postulacion</button>
+    </form>
+
+    <section id="resultMessage" class="msg" role="alert"></section>
+  </main>
+
+  <script>
+    const form = document.getElementById("jobForm");
+    const resultMessage = document.getElementById("resultMessage");
+    const validExtensions = ["pdf", "doc", "docx"];
+
+    function parseRegistry() {
+      const raw = localStorage.getItem("qa_demo_postulaciones");
+      if (!raw) return [];
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRegistry(items) {
+      localStorage.setItem("qa_demo_postulaciones", JSON.stringify(items));
+    }
+
+    function setMessage(kind, message) {
+      resultMessage.className = `msg ${kind}`;
+      resultMessage.textContent = message;
+    }
+
+    function emailIsValid(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function currentFileExtension(fileName) {
+      const pieces = fileName.split(".");
+      return pieces.length < 2 ? "" : pieces[pieces.length - 1].toLowerCase();
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById("nombre").value.trim();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const fileInput = document.getElementById("cvFile");
+      const file = fileInput.files[0];
+
+      if (!nombre || !email || !file) {
+        setMessage("error", "Completa todos los campos antes de enviar.");
+        return;
+      }
+
+      if (!emailIsValid(email)) {
+        setMessage("error", "El formato de email es invalido.");
+        return;
+      }
+
+      const ext = currentFileExtension(file.name);
+      if (!validExtensions.includes(ext)) {
+        setMessage("error", "Formato de CV invalido. Solo pdf, doc o docx.");
+        return;
+      }
+
+      const registry = parseRegistry();
+      const alreadyExists = registry.some((item) => item.email === email);
+      if (alreadyExists) {
+        setMessage("error", "Email duplicado. Ya existe una postulacion con ese correo.");
+        return;
+      }
+
+      const id = registry.length + 1;
+      registry.push({ id, nombre, email, fileName: file.name });
+      saveRegistry(registry);
+      setMessage("ok", `Postulacion enviada con exito.\nID generado: ${id}`);
+      form.reset();
+    });
+
+    window.qaDemoApi = {
+      resetData() {
+        localStorage.removeItem("qa_demo_postulaciones");
+        resultMessage.className = "msg";
+        resultMessage.textContent = "";
+      },
+      getTotal() {
+        return parseRegistry().length;
+      }
+    };
+  </script>
+</body>
+</html>
